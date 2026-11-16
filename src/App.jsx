@@ -22,6 +22,9 @@ import {
   who,
 } from "./content";
 
+// GitHub Pages compatible image paths
+const asset = (name) => `${import.meta.env.BASE_URL}${name}`;
+
 const PAGES = ["order", "privacy", "shipping", "terms", "admin"];
 const YEAR = new Date().getFullYear();
 
@@ -85,10 +88,10 @@ function CoverFace() {
         </p>
         <p className="mini">{book.subtitle}</p>
       </div>
-      <img className="art" src="/book-shivkumar/cover-art.png" alt="" />
+      <img className="art" src={asset("cover-art.png")} alt="" />
       <p className="byline">{book.author}</p>
       <div className="brandrow">
-        <img src="/book-shivkumar/logo.png" alt="Selfish Readers" />
+        <img src={asset("logo.png")} alt="Selfish Readers" />
       </div>
       <div className="band" />
     </div>
@@ -132,7 +135,7 @@ function ShotScene({ kind }) {
   if (kind === "back") {
     return (
       <div className="scene scene-back">
-        <img src="/book-shivkumar/back-cover.png" alt="मागील मुखपृष्ठ" />
+        <img src={asset("back-cover.png")} alt="मागील मुखपृष्ठ" />
       </div>
     );
   }
@@ -190,7 +193,7 @@ function Header({ go, theme, setTheme }) {
   return (
     <header className="header">
       <button className="brand" onClick={() => visit("top")}>
-        <img src="/book-shivkumar/logo.png" alt="लोगो" />
+        <img src={asset("logo.png")} alt="लोगो" />
         <div>
           <strong>{book.titleHindi}</strong>
           <span>{book.publisher}</span>
@@ -457,7 +460,7 @@ function Home({ go }) {
       <section className="section" id="author" style={{ paddingTop: 0 }}>
         <p className="eyebrow">लेखकांचे अनुभव आणि निरीक्षणे</p>
         <div className="author">
-          <img className="portrait" src="/book-shivkumar/author.png" alt={book.author} />
+          <img className="portrait" src={asset("author.png")} alt={book.author} />
           <div>
             <h2 style={{ marginTop: 0 }}>{book.author}</h2>
             <p className="lead">{book.authorEn} · {book.publisher}</p>
@@ -578,7 +581,7 @@ function Home({ go }) {
       <section className="order-band">
         <div className="mini-book" aria-hidden="true">
           <div className="band" />
-          <img src="/book-shivkumar/cover-art.png" alt="" />
+          <img src={asset("cover-art.png")} alt="" />
           <b>{book.titleHindi}</b>
         </div>
         <div>
@@ -649,6 +652,7 @@ function OrderPage() {
     const taluka = form.taluka.trim();
     const district = form.district.trim();
     const pin = form.pin.trim();
+
     if (!letters.test(name) || name.length < 2) return setError("कृपया फक्त इंग्रजी (English) अक्षरांचा वापर करा.");
     if (!/^[6-9]\d{9}$/.test(phone)) return setError("कृपया 10-अंकी मोबाईल नंबर प्रविष्ट करा.");
     if (!streetOk.test(address) || address.length < 5) return setError("कृपया पत्ता फक्त इंग्रजी (English) अक्षरे आणि अंकांमध्ये प्रविष्ट करा.");
@@ -657,8 +661,10 @@ function OrderPage() {
     if (taluka && !letters.test(taluka)) return setError("कृपया तालुक्याचे नाव फक्त इंग्रजीत (English) प्रविष्ट करा.");
     if (!letters.test(district) || district.length < 2) return setError("कृपया जिल्ह्याचे नाव फक्त इंग्रजीत (English) प्रविष्ट करा.");
     if (!/^\d{6}$/.test(pin)) return setError("कृपया 6-अंकी पिनकोड प्रविष्ट करा.");
+
     setBusy(true);
     setError("");
+
     try {
       const response = await fetch("/api/orders", {
         method: "POST",
@@ -675,18 +681,24 @@ function OrderPage() {
           qty: Number(form.qty),
         }),
       });
+
       const raw = await response.text();
       let data = {};
+
       try {
         data = raw ? JSON.parse(raw) : {};
       } catch {
         throw new Error("ऑर्डर सर्व्हरने उत्तर दिले नाही. पृष्ठ रीफ्रेश करून पुन्हा प्रयत्न करा.");
       }
+
       if (!response.ok) throw new Error(data.error || "ऑर्डर जतन करता आली नाही.");
+
       const ready = await loadRazorpay();
       if (!ready) throw new Error("Razorpay उघडता आले नाही.");
+
       let settled = false;
       let handling = false;
+
       const checkout = new window.Razorpay({
         key: data.keyId,
         amount: data.amount,
@@ -696,8 +708,10 @@ function OrderPage() {
         order_id: data.razorpayOrderId,
         prefill: { name, contact: phone },
         theme: { color: "#c4a265" },
+
         handler: async (payment) => {
           handling = true;
+
           try {
             const verify = await fetch("/api/payments/verify", {
               method: "POST",
@@ -709,15 +723,20 @@ function OrderPage() {
                 razorpaySignature: payment.razorpay_signature,
               }),
             });
+
             const paidRaw = await verify.text();
             let paid = {};
+
             try {
               paid = paidRaw ? JSON.parse(paidRaw) : {};
             } catch {
               throw new Error("पेमेंट सर्व्हरने उत्तर दिले नाही.");
             }
+
             if (!verify.ok) throw new Error(paid.error || "पेमेंट पडताळता आले नाही.");
+
             settled = true;
+
             finish({
               orderCode: paid.order?.orderCode || data.order.orderCode,
               name,
@@ -733,6 +752,7 @@ function OrderPage() {
             setBusy(false);
           }
         },
+
         modal: {
           ondismiss: () => {
             if (settled || handling) return;
@@ -741,6 +761,7 @@ function OrderPage() {
           },
         },
       });
+
       checkout.open();
     } catch (err) {
       setError(err.message);
@@ -758,14 +779,16 @@ function OrderPage() {
           <p className="eyebrow">Selfish Readers</p>
           <h1>ऑर्डर यशस्वी</h1>
           <p className="success-lead">{done.name}, तुमची ऑर्डर नोंदली गेली आहे आणि पेमेंट पूर्ण झाले आहे.</p>
+
           <div className="success-book">
-            <img src="/book-shivkumar/cover-art.png" alt="" />
+            <img src={asset("cover-art.png")} alt="" />
             <div>
               <strong>{book.titleHindi}</strong>
               <span>{book.subtitle}</span>
               <span>{book.author}</span>
             </div>
           </div>
+
           <dl className="success-facts">
             <div><dt>ऑर्डर क्रमांक</dt><dd>{done.orderCode}</dd></div>
             <div><dt>प्रती</dt><dd>{done.qty}</dd></div>
@@ -773,9 +796,11 @@ function OrderPage() {
             <div><dt>शहर</dt><dd>{done.city}</dd></div>
             <div><dt>पत्ता</dt><dd>{done.address}, {done.city}{done.district ? `, ${done.district}` : ""} — {done.pin}</dd></div>
           </dl>
+
           <p className="success-note">
             पुस्तक दिलेल्या पत्त्यावर पाठवले जाईल. वितरणाची पुष्टी Selfish Readers कडून केली जाईल.
           </p>
+
           <div className="success-actions">
             <button className="cta big checkout-go" type="button" onClick={() => { window.location.hash = "top"; }}>
               मुख्य पृष्ठावर जा
@@ -800,6 +825,7 @@ function OrderPage() {
               <input value={form.name} onChange={set("name")} placeholder="आपले पूर्ण नाव (English Only)" autoComplete="name" />
             </span>
           </label>
+
           <label>
             मोबाईल नंबर <span className="req">*</span>
             <span className="field">
@@ -824,6 +850,7 @@ function OrderPage() {
             <input value={form.address} onChange={set("address")} placeholder="उदा. Flat No 10, Shivaji Nagar (English Only)" autoComplete="street-address" />
           </span>
         </label>
+
         <label>
           जवळील खूण (Landmark)
           <span className="field">
@@ -831,6 +858,7 @@ function OrderPage() {
             <input value={form.landmark} onChange={set("landmark")} placeholder="उदा. Near Temple (English Only)" />
           </span>
         </label>
+
         <div className="pair">
           <label>
             शहर / गाव <span className="req">*</span>
@@ -839,6 +867,7 @@ function OrderPage() {
               <input value={form.city} onChange={set("city")} placeholder="आपले शहर (English Only)" autoComplete="address-level-2" />
             </span>
           </label>
+
           <label>
             तालुका
             <span className="field">
@@ -847,6 +876,7 @@ function OrderPage() {
             </span>
           </label>
         </div>
+
         <div className="pair">
           <label>
             जिल्हा <span className="req">*</span>
@@ -855,6 +885,7 @@ function OrderPage() {
               <input value={form.district} onChange={set("district")} placeholder="आपला जिल्हा (English Only)" />
             </span>
           </label>
+
           <label>
             पिनकोड <span className="req">*</span>
             <span className="field">
@@ -882,6 +913,7 @@ function OrderPage() {
 
         <div className="pay-card">Pay with Razorpay (UPI, Cards, Wallets, Netbanking)</div>
         {error ? <p className="error">{error}</p> : null}
+
         <button className="cta big checkout-go" type="submit" disabled={busy}>
           {busy ? "प्रक्रिया सुरू आहे…" : `🛒 ऑर्डर पूर्ण करा — ₹${total}`}
         </button>
@@ -925,6 +957,7 @@ export default function App() {
   const pageNode = useMemo(() => {
     if (page === "order") return <OrderPage />;
     if (page === "admin") return <AdminPage />;
+
     if (page === "privacy") {
       return (
         <Legal title="गोपनीयता">
@@ -935,6 +968,7 @@ export default function App() {
         </Legal>
       );
     }
+
     if (page === "shipping") {
       return (
         <Legal title="वितरण">
@@ -946,6 +980,7 @@ export default function App() {
         </Legal>
       );
     }
+
     if (page === "terms") {
       return (
         <Legal title="अटी">
@@ -960,6 +995,7 @@ export default function App() {
         </Legal>
       );
     }
+
     return <Home go={go} />;
   }, [page, go]);
 
@@ -968,31 +1004,37 @@ export default function App() {
       {page === "admin" ? null : <div className="progress" style={{ width: `${progress}%` }} />}
       {page === "admin" ? null : <Header go={go} theme={theme} setTheme={setTheme} />}
       {pageNode}
-      {page === "admin" ? null : <footer className="footer">
-        <nav>
-          <button onClick={() => go("privacy")}>Privacy Policy</button>
-          <button onClick={() => go("shipping")}>Shipping & Delivery</button>
-          <button onClick={() => go("terms")}>Terms & Conditions</button>
-          <button onClick={() => go("admin")}>Admin</button>
-        </nav>
-        <div>© {YEAR} {book.publisher}. {book.tagline}</div>
-        <div style={{ marginTop: 6 }}>
-          {book.titleFull} · {book.author}
+
+      {page === "admin" ? null : (
+        <footer className="footer">
+          <nav>
+            <button onClick={() => go("privacy")}>Privacy Policy</button>
+            <button onClick={() => go("shipping")}>Shipping & Delivery</button>
+            <button onClick={() => go("terms")}>Terms & Conditions</button>
+            <button onClick={() => go("admin")}>Admin</button>
+          </nav>
+          <div>© {YEAR} {book.publisher}. {book.tagline}</div>
+          <div style={{ marginTop: 6 }}>
+            {book.titleFull} · {book.author}
+          </div>
+        </footer>
+      )}
+
+      {page === "admin" ? null : (
+        <div className="dock">
+          <div className="mini-book">
+            <img src={asset("cover-art.png")} alt="" />
+            <b>{book.titleHindi}</b>
+          </div>
+          <div>
+            <strong>{book.titleHindi}</strong>
+            <div className="price-note">₹{book.price} · {book.author}</div>
+          </div>
+          <button className="cta" onClick={() => go("order")}>
+            ऑर्डर करा
+          </button>
         </div>
-      </footer>}
-      {page === "admin" ? null : <div className="dock">
-        <div className="mini-book">
-          <img src="/book-shivkumar/cover-art.png" alt="" />
-          <b>{book.titleHindi}</b>
-        </div>
-        <div>
-          <strong>{book.titleHindi}</strong>
-          <div className="price-note">₹{book.price} · {book.author}</div>
-        </div>
-        <button className="cta" onClick={() => go("order")}>
-          ऑर्डर करा
-        </button>
-      </div>}
+      )}
     </>
   );
 }
