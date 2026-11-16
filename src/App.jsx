@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import AdminPage from "./Admin";
 import {
@@ -84,10 +85,10 @@ function CoverFace() {
         </p>
         <p className="mini">{book.subtitle}</p>
       </div>
-      <img className="art" src="/cover-art.png" alt="" />
+      <img className="art" src="/book-shivkumar/cover-art.png" alt="" />
       <p className="byline">{book.author}</p>
       <div className="brandrow">
-        <img src="/logo.png" alt="Selfish Readers" />
+        <img src="/book-shivkumar/logo.png" alt="Selfish Readers" />
       </div>
       <div className="band" />
     </div>
@@ -119,21 +120,21 @@ function BookStack({ tilt }) {
 }
 
 function slotOf(index, active, total) {
-  let delta = index - active
-  if (delta > total / 2) delta -= total
-  if (delta < -total / 2) delta += total
-  return delta
+  let delta = index - active;
+  if (delta > total / 2) delta -= total;
+  if (delta < -total / 2) delta += total;
+  return delta;
 }
 
-const GALLERY = ["front", "back", "angle", "lean", "tilt"]
+const GALLERY = ["front", "back", "angle", "lean", "tilt"];
 
 function ShotScene({ kind }) {
   if (kind === "back") {
     return (
       <div className="scene scene-back">
-        <img src="/back-cover.png" alt="मागील मुखपृष्ठ" />
+        <img src="/book-shivkumar/back-cover.png" alt="मागील मुखपृष्ठ" />
       </div>
-    )
+    );
   }
   return (
     <div className={`scene scene-${kind}`}>
@@ -141,27 +142,27 @@ function ShotScene({ kind }) {
         <Volume />
       </div>
     </div>
-  )
+  );
 }
 
 function BookFlow() {
-  const [active, setActive] = useState(0)
+  const [active, setActive] = useState(0);
 
   useEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)")
-    if (media.matches) return undefined
-    const place = { index: 0, dir: 1 }
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (media.matches) return undefined;
+    const place = { index: 0, dir: 1 };
     const id = setInterval(() => {
-      let next = place.index + place.dir
+      let next = place.index + place.dir;
       if (next >= GALLERY.length || next < 0) {
-        place.dir *= -1
-        next = place.index + place.dir
+        place.dir *= -1;
+        next = place.index + place.dir;
       }
-      place.index = next
-      setActive(next)
-    }, 3400)
-    return () => clearInterval(id)
-  }, [])
+      place.index = next;
+      setActive(next);
+    }, 3400);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <section className="gallery" aria-label="पुस्तकाची छायाचित्रे">
@@ -177,7 +178,7 @@ function BookFlow() {
         ))}
       </div>
     </section>
-  )
+  );
 }
 
 function Header({ go, theme, setTheme }) {
@@ -189,7 +190,7 @@ function Header({ go, theme, setTheme }) {
   return (
     <header className="header">
       <button className="brand" onClick={() => visit("top")}>
-        <img src="/logo.png" alt="लोगो" />
+        <img src="/book-shivkumar/logo.png" alt="लोगो" />
         <div>
           <strong>{book.titleHindi}</strong>
           <span>{book.publisher}</span>
@@ -255,37 +256,37 @@ function ReviewCard({ item }) {
 }
 
 function useInView() {
-  const ref = useRef(null)
-  const [on, setOn] = useState(false)
+  const ref = useRef(null);
+  const [on, setOn] = useState(false);
 
   useEffect(() => {
-    if (on) return undefined
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    let frame = 0
-    let stop = false
+    if (on) return undefined;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let frame = 0;
+    let stop = false;
     const tick = () => {
-      if (stop) return
-      const el = ref.current
+      if (stop) return;
+      const el = ref.current;
       if (!el) {
-        frame = requestAnimationFrame(tick)
-        return
+        frame = requestAnimationFrame(tick);
+        return;
       }
-      const box = el.getBoundingClientRect()
-      const visible = box.top < window.innerHeight * 0.92 && box.bottom > 40
+      const box = el.getBoundingClientRect();
+      const visible = box.top < window.innerHeight * 0.92 && box.bottom > 40;
       if (reduce || visible) {
-        setOn(true)
-        return
+        setOn(true);
+        return;
       }
-      frame = requestAnimationFrame(tick)
-    }
-    frame = requestAnimationFrame(tick)
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
     return () => {
-      stop = true
-      cancelAnimationFrame(frame)
-    }
-  }, [on])
+      stop = true;
+      cancelAnimationFrame(frame);
+    };
+  }, [on]);
 
-  return [ref, on]
+  return [ref, on];
 }
 
 function Home({ go }) {
@@ -456,7 +457,7 @@ function Home({ go }) {
       <section className="section" id="author" style={{ paddingTop: 0 }}>
         <p className="eyebrow">लेखकांचे अनुभव आणि निरीक्षणे</p>
         <div className="author">
-          <img className="portrait" src="/author.png" alt={book.author} />
+          <img className="portrait" src="/book-shivkumar/author.png" alt={book.author} />
           <div>
             <h2 style={{ marginTop: 0 }}>{book.author}</h2>
             <p className="lead">{book.authorEn} · {book.publisher}</p>
@@ -577,7 +578,7 @@ function Home({ go }) {
       <section className="order-band">
         <div className="mini-book" aria-hidden="true">
           <div className="band" />
-          <img src="/cover-art.png" alt="" />
+          <img src="/book-shivkumar/cover-art.png" alt="" />
           <b>{book.titleHindi}</b>
         </div>
         <div>
@@ -758,7 +759,7 @@ function OrderPage() {
           <h1>ऑर्डर यशस्वी</h1>
           <p className="success-lead">{done.name}, तुमची ऑर्डर नोंदली गेली आहे आणि पेमेंट पूर्ण झाले आहे.</p>
           <div className="success-book">
-            <img src="/cover-art.png" alt="" />
+            <img src="/book-shivkumar/cover-art.png" alt="" />
             <div>
               <strong>{book.titleHindi}</strong>
               <span>{book.subtitle}</span>
@@ -981,7 +982,7 @@ export default function App() {
       </footer>}
       {page === "admin" ? null : <div className="dock">
         <div className="mini-book">
-          <img src="/cover-art.png" alt="" />
+          <img src="/book-shivkumar/cover-art.png" alt="" />
           <b>{book.titleHindi}</b>
         </div>
         <div>
